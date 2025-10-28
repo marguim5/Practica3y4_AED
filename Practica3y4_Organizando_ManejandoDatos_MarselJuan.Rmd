@@ -147,8 +147,11 @@ Pero queda algo confuso, y aún lo es más cuando en lugar de dos operaciones he
 Una alternativa es usar la librería `magrittr` que define el operador `%>%` que permite encadenar este tipo acciones. El concepto es que los datos pasan de una función a otra como a través de una tubería (_pipe_ en inglés) de funciones. Veamos cómo queda nuestro ejemplo:
 
 ```{r iris.tidy magrittr}
-iris.t <- gather(iris, Part, Value, -Species) %>% separate(Part, into=c("Part", "Measure")) 
+
+iris.t <- gather(iris, Part, Value, -Species) %>% separate(Part, into=c("Part", "Measure"))
+
 iris.t %>% head
+
 ```
 
 Fíjate que no hace falta especificar el primer argumento en las funciones `gather`, `separate` y `head`. El operador `%>%` automáticamente lo hace por nosotros.
@@ -207,7 +210,8 @@ Para convertir este conjunto a formato _tidy_ tendremos que agrupar todas las co
 Convierte el dataset `pew_religion` a formato _tidy_ usando `gather`. La columna `income` debe contener una variable de tipo `factor`.
 
 ```{r}
-
+pew_religion<-gather(pew_religion, income, cases, -religion, factor_key=T) 
+pew_religion %>%  head
 
 ```
 
@@ -229,7 +233,19 @@ Obtén la versión _tidy_ de este conjunto de datos usando `pivot_longer`.
 Consejo: puedes eliminar el prefijo `wk` de las semanas mediante el argumento `names_prefix`. Opcionalmente puedes crear una columna `date` a partir de `date.entered`, sumando las semanas transcurridas desde la fecha de entrada en lista.
 
 ```{r}
+#unimos
+billboard<-pivot_longer(raw,cols = 6:81,names_to = "week", values_to = "value", names_prefix = "wk")
 
+#pasamos a variable fecha con lubridate
+billboard$date.entered <-billboard$date.entered %>% as.Date(format = "%Y-%m-%d")
+
+#limpiamos los NA
+billboard<-billboard %>% drop_na
+
+#creamos la columna date
+semanas<-billboard$week %>% 
+  as.numeric %>% weeks
+billboard$date <- billboard$date.entered + semanas
 
 ```
 
