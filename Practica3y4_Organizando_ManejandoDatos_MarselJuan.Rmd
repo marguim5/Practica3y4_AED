@@ -268,7 +268,13 @@ Para pasar a formato _tidy_ necesitamos realizar dos operaciones en este caso. E
 Convierte el conjunto de datos TB en _tidy_ utilizando `gather` y `separate`.
 
 ```{r}
-
+# Primero agrupamos todas las unidades
+# Agrupamos todas las columnas
+tb <- gather(raw, sexo, casos, 3:18)
+head(tb)
+# Luego separamos la variable Sexo en dos, Sexo y Edad
+tb <- separate(tb, sexo, into=c("sexo", "edad"), sep = 1)
+head(tb)
 ```
 
 
@@ -290,9 +296,22 @@ Para obtener la versión _tidy_ primero juntamos todos los días en una variable
 Obtén la versión _tidy_ del conjunto de datos `weather` utilizando las funciones `pivot_longer` y `pivot_wider`. Además cambiaremos las columnas `year`, `month` y `dia` por una única variable `fecha`. Para que la operación `pivot_wider` no de error tendremos que eliminar los NA's cuando usemos `pivot_longer`.
 
 ```{r}
+#crearemos la variable día
+weather<-raw %>% 
+  pivot_longer(cols = 5:35, names_to = "dia", 
+               values_to = "temp", names_prefix = "d", values_drop_na = T) %>%
+  
+  #ahora creamos las columnas tmax y tmin
+  pivot_wider(names_from = element, values_from = temp) %>%
+  
+  #ahora creamos la columna fecha
+  unite(col = "fecha",year, month, dia, sep = "-", remove = T)
 
+weather$fecha <- weather$fecha %>% as_date(format = "%Y-%m-%d")
 
+str(weather)
 ```
+
 
 
 # DPLYR 
