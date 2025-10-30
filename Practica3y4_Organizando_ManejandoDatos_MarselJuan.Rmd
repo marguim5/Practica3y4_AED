@@ -433,8 +433,11 @@ Utilizando las funciones `group_by`, `summarise` y `filter`, crea un data frame 
 
 ```{r }
 Distances_plane <- flights %>%
+  # quito los NA
   filter(!is.na(tailnum)) %>%
+  #eligo trabajar con cada avion
   group_by(tailnum) %>%
+  #para cada avion (grupo) le aplico estas funciones estadísticas
   summarise(
     Num_flights = n(),
     Mean_distance = mean(distance, na.rm = TRUE),
