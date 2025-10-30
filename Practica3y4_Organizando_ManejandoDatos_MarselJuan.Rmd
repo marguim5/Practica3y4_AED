@@ -38,7 +38,7 @@ knit_hooks$set(inline=function(x) {
 
 ```{r}
 library(pacman)
-packages=c("tidyverse", "knitr", "ggplot2", "datasets", "RColorBrewer",'dplyr','lubridate',"nycflights13")
+packages=c("tidyverse", "knitr", "ggplot2", "datasets", "RColorBrewer",'dplyr','lubridate',"nycflights13","stringr")
 pacman::p_load(char=packages)
 
 ```
@@ -356,7 +356,8 @@ load("./data/VuelosNY.Rdata")
 Muestra las primeras muestras de ambos data frames para hacerte una idea de las variables que contienen. ¿Qué diferencia existe entre la información mostrada en ambos data frames?
 
 ```{r }
-
+head(flights)
+head(planes)
 ```
 
 ### Ejercicio 6
@@ -366,8 +367,16 @@ En nuestro estudio queremos aplicar una serie de criterios de exclusión sobre l
 * Nota: Revisar el uso de la función filter vista en clase y tener en cuenta los operadores de comparación: igual ==, distinto !=, mayor >, mayor o igual >=, menor <, menor o igual <=.
 
 ```{r }
-
-
+planes.f <- planes %>%
+  # primero, pasamos a minúsculas todas las letras para poder buscar mejor
+  mutate(manufacturer = str_to_lower(manufacturer)) %>%
+  # usamos una expresión regular para buscar por el único patrón que hay: douglas
+  filter(str_detect(manufacturer, "^*duoglas*",negate=T)) %>%
+  # ahora seleccionamos por número de asientos
+  filter(between(seats,90,210)) %>%
+  # finalmente unificamos las denominaciones airbus bajo airbus corps
+  mutate(manufacturer = ifelse(str_detect(manufacturer, "airbus*"), 
+                               "airbus comp", manufacturer))
 
 ```
 
@@ -377,7 +386,7 @@ En nuestro estudio queremos aplicar una serie de criterios de exclusión sobre l
 Crea un data frame denominado `flights.f` que contenga los vuelos que involucren a los aviones presentes en el data frame `planes.f`. Para ello utiliza algunas de las funciones de **XXX_join** y la variable `tailnum` que es común en ambos data frames. 
 
 ```{r }
-
+flights.f <- flights %>% semi_join(planes.f, by = "tailnum")
 
 ```
 
@@ -386,8 +395,12 @@ Crea un data frame denominado `flights.f` que contenga los vuelos que involucren
 Reasigna los nombres de los data frames `planes.f` y `flights.f` a los nombres originales  `planes` y `flights`.
 
 ```{r }
-
+planes <- planes.f
+rm(planes.f)
+flights <- flights.f
+rm(flights.f)
 ```
+
 
 
 ### Ejercicio 9
@@ -398,7 +411,8 @@ Existen variables que, a priori, no tienen demasiado interés para el estudio qu
 * En el data frame  `planes` quédate con todas las variables excepto `speed` y `type`.
 
 ```{r }
-
+flights <- flights %>% select(-time_hour, -ends_with("time"))
+planes <- planes %>% select(-speed, -type)
 ```
 
 ### Ejercicio 10
@@ -406,7 +420,7 @@ Existen variables que, a priori, no tienen demasiado interés para el estudio qu
 Incorpora una nueva variable a `flights` denominado `Full_Date` que sea de tipo `character` que incorpore una cadena de texto de la forma `d-m-Y`. Donde `d` indica día, `m` mes e `Y` año, a partir de la información incluida en el data frame. Utiliza una función de **DPLYR** que permita conseguir este propósito. Elimina las variables originales involucradas en la creación de la nueva variable.
 
 ```{r }
-
+flights <- flights %>% mutate(Full_Date = paste(as.character(day),as.character(month),as.character(year),sep = "-"),.keep="unused" )
 
 ```
 
